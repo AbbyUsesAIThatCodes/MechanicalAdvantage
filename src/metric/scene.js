@@ -133,15 +133,15 @@ export class MetricScene extends WorkshopScene {
     const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
     // A stable composition leaves room for the overlay controls and math tray.
     // Its framing depends only on the viewport, never on panel content/visibility.
-    this.controls.target.set(0,3.5,0);
-    this.camera.position.set(10*fit,3.5+12*fit,38*fit);
+    this.controls.target.set(0,5.5,0);
+    this.camera.position.set(12*fit,5.5+14*fit,46*fit);
     this.controls.maxDistance=Math.max(65,55*fit);
     this.controls.update();this.draw();
   }
   sideCamera() {
     const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
-    this.controls.target.set(0,3.5,0);
-    this.camera.position.set(0,3.6,42*fit);
+    this.controls.target.set(0,5.5,0);
+    this.camera.position.set(0,5.6,50*fit);
     this.controls.update();this.draw();
   }
   screenSign() {
