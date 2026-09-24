@@ -66,24 +66,69 @@ function render() {
 function updateStatus(direction,isHeld) {const label=isHeld?'Held level':direction==='balance'?'Balanced':`Weight ${direction.toUpperCase()} dips`;if($('#beam-status').textContent!==label)$('#beam-status').textContent=label;$('#beam-status').classList.toggle('balanced',direction==='balance'&&!isHeld);}
 function onFrame({positions,direction,held:isHeld}) {
  updateStatus(direction,isHeld);if(!positions.pivot)return;
+ const stage=$('#stage'),w=stage.clientWidth,h=stage.clientHeight;
+ const toolbarBottom=$('#workbench-top').getBoundingClientRect().bottom;
+ const compact=matchMedia('(max-width:900px),(max-height:660px)').matches;
+ const minX=compact?8:$('#panel-a').getBoundingClientRect().right+12;
+ const maxX=compact?w-8:$('#panel-b').getBoundingClientRect().left-12;
+ const labels=[],measurements=[];
  for(const p of ['a','b']) {
-  const pos=positions[p],tag=$(`[data-part="${p}"]`);tag.hidden=!pos.visible;
-  const w=$('#stage').clientWidth,h=$('#stage').clientHeight;
-  tag.style.left=`${Math.max(90,Math.min(w-90,pos.x))}px`;tag.style.top=`${Math.max(32,Math.min(h-95,pos.y-53))}px`;
-  const foot=positions[p+'foot'],pivot=positions.pivot;const y1=foot.y-13,y2=pivot.y-13,mx=(foot.x+pivot.x)/2,my=(y1+y2)/2;
-  $(`#measure-${p}`).innerHTML=`<path d="M${foot.x} ${y1+7}v-14m0 7L${pivot.x} ${y2}m0-7v14" stroke="${p==='a'?'#286052':'#865512'}" stroke-width="2" fill="none"/><rect x="${mx-39}" y="${my-12}" width="78" height="24" rx="6" fill="#fffbed"/><text x="${mx}" y="${my+5}" text-anchor="middle" fill="#193f35" font-size="16" font-family="Comic Sans MS,Comic Neue,sans-serif" font-weight="bold">${state[p]} mm</text>`;
+  const pos=positions[p],foot=positions[p+'foot'],bounds=positions[p+'bounds'];
+  const tag=$(`[data-part="${p}"]`);tag.hidden=!pos.visible;
+  if(!pos.visible){$(`#measure-${p}`).replaceChildren();continue;}
+  const half=tag.offsetWidth/2;
+  // The bottom of the callout clears both the carriage and the projected mass.
+  const bottom=Math.min(foot.y,bounds.top)-30;
+  const y=Math.max(toolbarBottom+tag.offsetHeight+8,Math.min(h-12,bottom));
+  const x=Math.max(minX+half,Math.min(maxX-half,pos.x));
+  labels.push({p,tag,x,y,half,foot});
+  const pivot=positions.pivot,y1=foot.y-13,y2=pivot.y-13,mx=(foot.x+pivot.x)/2,my=(y1+y2)/2;
+  measurements.push({p,foot,pivot,y1,y2,mx,my,labelX:mx});
  }
- // Keep labels readable when short arms project close together (especially phones).
- const labels=['a','b'].map(p=>$(`[data-part="${p}"]`)).sort((a,b)=>parseFloat(a.style.left)-parseFloat(b.style.left));
- const [left,right]=labels, gap=(left.offsetWidth+right.offsetWidth)/2+10;
- const lx=parseFloat(left.style.left),rx=parseFloat(right.style.left),w=$('#stage').clientWidth;
- if(rx-lx<gap && Math.abs(parseFloat(left.style.top)-parseFloat(right.style.top))<65){
-   if(w>=left.offsetWidth+right.offsetWidth+20){
-     const center=Math.max(left.offsetWidth/2+10,Math.min(w-right.offsetWidth/2-gap-10,(lx+rx-gap)/2));
-     left.style.left=`${center}px`;right.style.left=`${center+gap}px`;
-   }else right.style.top=`${parseFloat(left.style.top)+65}px`;
+ // Dimension captions need their own spacing on narrow or end-on views.
+ measurements.sort((a,b)=>a.mx-b.mx);
+ if(measurements.length===2){
+  const [left,right]=measurements;
+  if(right.mx-left.mx<86&&Math.abs(right.my-left.my)<28){
+   left.labelX=Math.max(44,Math.min(w-130,(left.mx+right.mx-86)/2));
+   right.labelX=left.labelX+86;
+  }
  }
+ for(const {p,foot,pivot,y1,y2,mx,my,labelX} of measurements){
+  $(`#measure-${p}`).innerHTML=`<path d="M${foot.x} ${y1+7}v-14m0 7L${pivot.x} ${y2}m0-7v14M${mx} ${my}L${labelX} ${my}" stroke="${p==='a'?'#286052':'#865512'}" stroke-width="2" fill="none"/><rect data-measure-label="${p}" x="${labelX-39}" y="${my-12}" width="78" height="24" rx="6" fill="#fffbed"/><text x="${labelX}" y="${my+5}" text-anchor="middle" fill="#193f35" font-size="16" font-family="Comic Sans MS,Comic Neue,sans-serif" font-weight="bold">${state[p]} mm</text>`;
+ }
+ // Keep both callouts separate even when looking along the beam.
+ labels.sort((a,b)=>a.x-b.x);
+ if(labels.length===2){
+  const [left,right]=labels,gap=left.half+right.half+8;
+  if(right.x-left.x<gap){
+   left.x=Math.max(minX+left.half,Math.min(maxX-right.half-gap,(left.x+right.x-gap)/2));
+   right.x=left.x+gap;
+  }
+ }
+ $('#label-leaders').innerHTML=labels.map(({p,tag,x,y,foot})=>{
+  tag.style.left=`${x}px`;tag.style.top=`${y}px`;
+  const color=p==='a'?'#286052':'#865512';
+  return `<path data-leader="${p}" d="M${x} ${y+3}L${foot.x} ${foot.y}" stroke="${color}" stroke-width="1.5" stroke-opacity=".65" fill="none"/><circle cx="${foot.x}" cy="${foot.y}" r="3" fill="${color}"/>`;
+ }).join('');
 }
+// Only the viewport resizes the renderer. Changes to overlay size just update
+// label clearances and the compact-screen tray position.
+new ResizeObserver(()=>{
+ $('#app').style.setProperty('--toolbar-bottom',`${$('#workbench-top').getBoundingClientRect().bottom}px`);
+ if(scene)scene.dirty=true;
+}).observe($('#workbench-top'));
+$('#weights-toggle').addEventListener('click',()=>{
+ const open=$('#weight-controls').classList.toggle('open');
+ $('#weights-toggle').setAttribute('aria-expanded',String(open));
+ $('#weights-toggle').textContent=open?'Close weights':'Weights';
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&$('#weight-controls').classList.contains('open')){
+  $('#weights-toggle').click();$('#weights-toggle').focus();
+ }
+});
+
 function drawFallback(){const m=measures(state),cx=400,scale=.94,angle=held||m.direction==='balance'?0:m.direction==='a'?-12:12;$('#fallback-svg').innerHTML=`<path d="M400 140l-24 145h48z" fill="#627f75"/><g transform="rotate(${angle} 400 140)"><rect x="105" y="135" width="590" height="12" rx="4" fill="#839a94"/>${['a','b'].map(p=>{const x=cx+(p==='a'?-1:1)*state[p]*scale;return `<path d="M${x} 145v45" stroke="#8e7044" stroke-width="4"/><rect x="${x-24}" y="190" width="48" height="${25+Math.cbrt(state[massKey(p)])*3}" rx="5" fill="${p==='a'?'#38786c':'#b5893d'}"/><text x="${x}" y="105" text-anchor="middle" font-size="20" fill="#193f35">${p.toUpperCase()}: ${state[massKey(p)]} g</text><text x="${(x+cx)/2}" y="126" text-anchor="middle" font-size="17" fill="#193f35">${state[p]} mm</text>`;}).join('')}</g>`;updateStatus(m.direction,held);}
 function holdScene(){scene?.setHeld(held||!!$('dialog[open]'));if(fallback)drawFallback();}
 for(const p of ['a','b']) {

@@ -8,6 +8,8 @@ This standalone game opens at the root of the MechanicalAdvantage site. It was m
 - Each carriage slides 50–300 mm from a fixed central fulcrum, in 25 mm steps.
 - Drag the object or label; select to retain green arrows. Horizontal arrows move across the screen, including from behind. Drag the vertical handle to resize, or use plus/minus, sliders, number boxes and keyboard alternatives.
 - Begin with equal arms. Double A's distance, predict, then halve its mass. It balances again. The 2× and 3× presets give other balanced starting arrangements, without lesson gates or scores.
+- The 3D workbench fills the viewport. Camera, balance, hold and reset controls sit at the top. Math floats in a scrollable tray; changing its text, switching tabs or hiding it leaves the render size and framing unchanged. On compact screens, **Weights** opens the mass/distance tray.
+- Mass/distance labels and translucent green controls sit above the apparatus with leader lines. They remain readable from both sides without text sprites clipping through the masses.
 - Hide math for predictions. Reveal **Balance & advantage** for live distance ratio, mass-distance products, and required effort mass. **Grams → newtons** shows every conversion and the resulting SI turning effects.
 - Choose which side represents effort. A and B remain attached to the same physical parts.
 - Focus, hover or tap dotted math terms for concise explanations. Fraction bars explain division; units and operators have definitions.
@@ -31,4 +33,4 @@ Saved state has its own browser-storage key. All runtime assets are local; no st
 - The interactive cloud browser disables WebGL. GitHub Actions run 35944628135 passed the original workshop regression suite and the new software-WebGL 3D checks: startup, object-label dragging, vertical mass resizing, keyboard, reverse-camera movement, math toggle, newton conversions and mobile width. Its captured 3D screenshots were downloaded and visually reviewed. That review prompted a phone document-scroll fix and separation for nearby floating labels; subsequent CI results belong to the PR checks.
 - No physical classroom validation or student trial has been performed.
 
-This migration is delivered as a review PR. It has not been merged or deployed.
+The immersive-layout update is delivered as a separate review PR.
