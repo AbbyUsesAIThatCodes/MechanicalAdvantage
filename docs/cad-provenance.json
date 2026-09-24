@@ -1,0 +1,50 @@
+{
+  "sourceRepository": "AbbyUsesAIThatCodes/EngineeringEssentials26-27",
+  "parts": {
+    "beam": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/beam_228-2500-030_2x20_Beam.obj",
+      "sha": "56dd9775ae4f975465eb7d612d3a52dc14ce7032"
+    },
+    "upright": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/beam_228-2500-019_2x4_Beam.obj",
+      "sha": "14b8c3dd1bd2039811b6f0e12748bd8a9cc32642"
+    },
+    "angle": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/beam_228-2500-149_3x3_60_Degree_Angle_Beam v1.obj",
+      "sha": "15caf224690a1010892b9fdd7a14e097d553178a"
+    },
+    "pin": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/connector_228-2500-060_1x1_Connector_Pin.obj",
+      "sha": "d7a6fcf6bf53176af199d80c41ceda4c865903b7"
+    },
+    "corner": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/connector_228-2500-128_2x_Wide_1x2_Corner Connector v1.obj",
+      "sha": "51e81f0248db6415f638916a79e930cf5a2168e3"
+    },
+    "offset": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/connector_228-2500-131_2x_Wide_2x1_Offset_Corner_Connector v1.obj",
+      "sha": "9565b7adf246899ca0a5386038dbe32e1a4c0395"
+    },
+    "largeGear": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/gear_228-2500-215_60 Tooth Gear v1.obj",
+      "sha": "c917d3d07c08679c3387668d367c091c0916ea06"
+    },
+    "smallGear": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/gear_228-2500-214_36_Tooth_Gear v1.obj",
+      "sha": "bde1a50c3ef99b1ee28447eecba7aba4d1022703"
+    },
+    "shaft": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/shaft_228-2500-122_6x_Shaft_3_Inch.obj",
+      "sha": "d7aa9bcda784b33bae4276b83ec1c63ccf168a53"
+    },
+    "collar": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/shaft_228-2500-143_Rubber_Shaft_Collar v1.obj",
+      "sha": "46e05e2daf8eb5cc972a90e731b31942c219f1d1"
+    },
+    "standoff": {
+      "path": "units/unit-2/shared-resources/professional-learning/summer-2026/Unit 2/VEX_IQ_OBJ_Files/VEX_IQ_OBJ_Files/standoff_228-2500-067_2x_Standoff.obj",
+      "sha": "66b57ec3ad463accb12bd75a6910e076f148d1bc"
+    }
+  },
+  "sourceTree": "2b6a33f5f941e915fd29c5238219626e69244d89"
+}
