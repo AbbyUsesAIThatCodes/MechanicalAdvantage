@@ -35,7 +35,7 @@ test('metric lab: corrupt values, bounds and quantization are safe',()=>{
 });
 test('metric lab: procedural hangers fit the rail, rotate vertically, and clear the desk at both stops',()=>{
  const scene=new MetricScene({});scene.scene=new THREE.Scene();scene.moving=new THREE.Group();scene.base=new THREE.Group();scene.scene.add(scene.moving,scene.base);
- scene.draw=()=>{};scene.textLabel=()=>new THREE.Group();
+ scene.draw=()=>{};
  for(const distance of [50,300])for(const mass of [25,1000]){
   scene.setState({a:distance,b:distance,massA:mass,massB:mass});
   for(const sign of [-1,1]){
@@ -52,4 +52,22 @@ test('metric lab: procedural hangers fit the rail, rotate vertically, and clear 
  const ray=new THREE.Raycaster(new THREE.Vector3(0,7,5),new THREE.Vector3(0,0,-1));
  assert.equal(ray.intersectObjects(scene.moving.children,true).length,0,'axle passes through an actual bore, not a solid beam');
  assert.equal(scene.hangers.a.position.x*25,-200);assert.equal(scene.hangers.b.position.x*25,100);
+});
+
+
+test('metric lab: portrait zoom stays ahead of fog and rear orbit clears the backdrop',()=>{
+ const scene=new MetricScene({});
+ scene.scene=new THREE.Scene();scene.scene.fog=new THREE.Fog(0xe0e7d9,65,145);
+ scene.camera=new THREE.PerspectiveCamera(35,390/844,.1,220);
+ scene.controls={target:new THREE.Vector3(0,5.5,0)};
+ scene.moving=new THREE.Group();scene.scene.add(scene.moving);
+ scene.classroom=[new THREE.Group(),new THREE.Group()];
+ scene.renderer={render(){}};scene.screenPositions=()=>({});
+ scene.camera.position.set(42,54,174);scene.draw();
+ assert.ok(scene.scene.fog.near>scene.camera.position.distanceTo(scene.controls.target)+30,'portrait apparatus is not fogged out');
+ assert.ok(scene.classroom.every(o=>o.visible));
+ scene.camera.position.set(-12,19.5,-50);scene.draw();
+ assert.ok(scene.classroom.every(o=>!o.visible),'backdrop cannot occlude the rear view');
+ scene.camera.position.z=50;scene.draw();
+ assert.ok(scene.classroom.every(o=>o.visible),'backdrop returns at the front');
 });

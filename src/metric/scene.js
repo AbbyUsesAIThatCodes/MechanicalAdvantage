@@ -10,9 +10,11 @@ export class MetricScene extends WorkshopScene {
     // Sampling it on the wall produces a clipped triangular shadow at its edge.
     const wall=this.box(110, 48, .4, 0xd8dfd0, 0, 18, -32);
     wall.name='classroom-wall'; wall.castShadow=false; wall.receiveShadow=false;
-    this.box(30, 12, .45, 0x847453, 1, 15, -31.6);
-    this.box(28.8, 10.8, .16, 0x355850, 1, 15, -31.3);
-    this.box(31, .35, 1.2, 0xae9a76, 1, 8.9, -30.9);
+    this.classroom=[wall,
+      this.box(30, 12, .45, 0x847453, 1, 15, -31.6),
+      this.box(28.8, 10.8, .16, 0x355850, 1, 15, -31.3),
+      this.box(31, .35, 1.2, 0xae9a76, 1, 8.9, -30.9),
+    ];
   }
   mesh(parent, geometry, color, xyz, owner, metalness = .55) {
     const material = new THREE.MeshStandardMaterial({color, metalness, roughness:.4});
@@ -124,24 +126,38 @@ export class MetricScene extends WorkshopScene {
   }
   draw() {
     if(!this.moving)return;
+    // Portrait framing pulls the camera back. Keep the apparatus ahead of fog.
+    this.scene.fog.near=Math.max(65,this.camera.position.distanceTo(this.controls.target)+35);
+    this.scene.fog.far=this.scene.fog.near+80;
+    // The classroom is a backdrop: do not put its back between the camera and
+    // the apparatus when orbiting around the far side of the desk.
+    for(const object of this.classroom||[]) object.visible=this.camera.position.z>-28;
     this.moving.rotation.z=this.motion.angle;
     for(const hanger of Object.values(this.hangers||{}))hanger.rotation.z=-this.motion.angle;
     this.scene.updateMatrixWorld(true);this.renderer.render(this.scene,this.camera);this.dirty=false;
     this.callbacks.onFrame?.({positions:this.screenPositions(),direction:this.state?measures(this.state).direction:'balance',held:this.held||!!this.drag,angle:this.motion.angle});
+  }
+  resize(reset=false) {
+    super.resize(reset);
+    const {w,h}=this.lastSize||{};
+    if(!w||!h)return;
+    if(h<=500)this.camera.setViewOffset(w,h,0,-h*.04,w,h);
+    else this.camera.clearViewOffset();
+    this.draw();
   }
   resetCamera() {
     const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
     // A stable composition leaves room for the overlay controls and math tray.
     // Its framing depends only on the viewport, never on panel content/visibility.
     this.controls.target.set(0,5.5,0);
-    this.camera.position.set(12*fit,5.5+14*fit,46*fit);
+    this.camera.position.set(12*fit,5.5+14*fit,50*fit);
     this.controls.maxDistance=Math.max(65,55*fit);
     this.controls.update();this.draw();
   }
   sideCamera() {
     const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
     this.controls.target.set(0,5.5,0);
-    this.camera.position.set(0,5.6,50*fit);
+    this.camera.position.set(0,5.6,54*fit);
     this.controls.update();this.draw();
   }
   screenSign() {

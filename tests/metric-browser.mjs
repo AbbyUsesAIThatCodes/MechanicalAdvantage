@@ -105,6 +105,8 @@ export async function verifyMetric(page, root) {
       await page.locator('#force-math .note').last().scrollIntoViewIfNeeded();
       await page.getByRole('tab',{name:'Balance & advantage'}).click();
     }
+    const ma=await page.locator('[data-measure-label="a"]').boundingBox(),mb=await page.locator('[data-measure-label="b"]').boundingBox();
+    assert.ok(ma.x+ma.width<=mb.x||mb.x+mb.width<=ma.x||ma.y+ma.height<=mb.y||mb.y+mb.height<=ma.y,'distance captions do not overlap');
     await page.mouse.move(0,0);await page.keyboard.press('Escape');
     await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
     await page.screenshot({path:`artifacts/metric-${size.width}x${size.height}.png`});

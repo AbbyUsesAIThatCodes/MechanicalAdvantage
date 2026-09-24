@@ -71,7 +71,7 @@ function onFrame({positions,direction,held:isHeld}) {
  const compact=matchMedia('(max-width:900px),(max-height:660px)').matches;
  const minX=compact?8:$('#panel-a').getBoundingClientRect().right+12;
  const maxX=compact?w-8:$('#panel-b').getBoundingClientRect().left-12;
- const labels=[];
+ const labels=[],measurements=[];
  for(const p of ['a','b']) {
   const pos=positions[p],foot=positions[p+'foot'],bounds=positions[p+'bounds'];
   const tag=$(`[data-part="${p}"]`);tag.hidden=!pos.visible;
@@ -83,7 +83,19 @@ function onFrame({positions,direction,held:isHeld}) {
   const x=Math.max(minX+half,Math.min(maxX-half,pos.x));
   labels.push({p,tag,x,y,half,foot});
   const pivot=positions.pivot,y1=foot.y-13,y2=pivot.y-13,mx=(foot.x+pivot.x)/2,my=(y1+y2)/2;
-  $(`#measure-${p}`).innerHTML=`<path d="M${foot.x} ${y1+7}v-14m0 7L${pivot.x} ${y2}m0-7v14" stroke="${p==='a'?'#286052':'#865512'}" stroke-width="2" fill="none"/><rect x="${mx-39}" y="${my-12}" width="78" height="24" rx="6" fill="#fffbed"/><text x="${mx}" y="${my+5}" text-anchor="middle" fill="#193f35" font-size="16" font-family="Comic Sans MS,Comic Neue,sans-serif" font-weight="bold">${state[p]} mm</text>`;
+  measurements.push({p,foot,pivot,y1,y2,mx,my,labelX:mx});
+ }
+ // Dimension captions need their own spacing on narrow or end-on views.
+ measurements.sort((a,b)=>a.mx-b.mx);
+ if(measurements.length===2){
+  const [left,right]=measurements;
+  if(right.mx-left.mx<86&&Math.abs(right.my-left.my)<28){
+   left.labelX=Math.max(44,Math.min(w-130,(left.mx+right.mx-86)/2));
+   right.labelX=left.labelX+86;
+  }
+ }
+ for(const {p,foot,pivot,y1,y2,mx,my,labelX} of measurements){
+  $(`#measure-${p}`).innerHTML=`<path d="M${foot.x} ${y1+7}v-14m0 7L${pivot.x} ${y2}m0-7v14M${mx} ${my}L${labelX} ${my}" stroke="${p==='a'?'#286052':'#865512'}" stroke-width="2" fill="none"/><rect data-measure-label="${p}" x="${labelX-39}" y="${my-12}" width="78" height="24" rx="6" fill="#fffbed"/><text x="${labelX}" y="${my+5}" text-anchor="middle" fill="#193f35" font-size="16" font-family="Comic Sans MS,Comic Neue,sans-serif" font-weight="bold">${state[p]} mm</text>`;
  }
  // Keep both callouts separate even when looking along the beam.
  labels.sort((a,b)=>a.x-b.x);
