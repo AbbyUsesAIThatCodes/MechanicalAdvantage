@@ -6,7 +6,10 @@ export class MetricScene extends WorkshopScene {
   makeRoom() {
     super.makeRoom();
     // Quiet classroom backdrop, behind the original desk.
-    this.box(110, 48, .4, 0xd8dfd0, 0, 18, -32);
+    // The workbench shadow map covers the desk, not this distant backdrop.
+    // Sampling it on the wall produces a clipped triangular shadow at its edge.
+    const wall=this.box(110, 48, .4, 0xd8dfd0, 0, 18, -32);
+    wall.name='classroom-wall'; wall.castShadow=false; wall.receiveShadow=false;
     this.box(30, 12, .45, 0x847453, 1, 15, -31.6);
     this.box(28.8, 10.8, .16, 0x355850, 1, 15, -31.3);
     this.box(31, .35, 1.2, 0xae9a76, 1, 8.9, -30.9);
@@ -32,13 +35,6 @@ export class MetricScene extends WorkshopScene {
     else shape.absarc(0,0,outer,0,Math.PI*2,false);
     const hole=new THREE.Path();hole.absarc(0,0,inner,0,Math.PI*2,true);shape.holes.push(hole);
     return this.mesh(parent,new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:false,curveSegments:32}),color,[x,y,z-depth/2]);
-  }
-  textLabel(text, color, width=2.1) {
-    const c = document.createElement('canvas'); c.width=512; c.height=128;
-    const ctx=c.getContext('2d'); ctx.fillStyle='#fffae9'; ctx.fillRect(0,0,512,128);
-    ctx.fillStyle=color; ctx.font='bold 70px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,256,68);
-    const texture=new THREE.CanvasTexture(c); texture.colorSpace=THREE.SRGBColorSpace;
-    const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthTest:true})); sprite.scale.set(width,width/4,1); return sprite;
   }
   setState(state) {
     this.state={...state}; this.motion={angle:0,velocity:0};
@@ -84,8 +80,8 @@ export class MetricScene extends WorkshopScene {
       this.cylinder(hanger,.16,.27,brass,0,-1.45,0,owner);
       this.cylinder(hanger,radius,h,col,0,-1.6-h/2,0,owner);
       for (const y of [-1.6,-1.6-h]) this.cylinder(hanger,radius+.065,.12,brass,0,y,0,owner);
-      const label=this.textLabel(`${mass} g`,p==='a'?'#174b43':'#67450e',Math.max(1.3,radius*1.9));
-      label.position.set(0,-1.6-h/2,radius+.07); hanger.add(label);
+      // Mass text lives in a screen-space callout above the apparatus. A sprite
+      // attached to one cylinder face would rotate into the metal when orbiting.
     }
     this.highlight(this.hovered); this.dirty=true; this.draw();
   }
@@ -104,6 +100,11 @@ export class MetricScene extends WorkshopScene {
       const x=(p==='a'?-1:1)*this.state[p]/SCALE;
       result[p]=this.project(this.moving.localToWorld(new THREE.Vector3(x,1.35,0)));
       result[`${p}foot`]=this.project(this.moving.localToWorld(new THREE.Vector3(x,.65,0)));
+      // Screen bounds let callouts clear the entire hanging mass at any angle.
+      const bounds=new THREE.Box3().setFromObject(this.hangers[p]);
+      const corners=[];
+      for(const x of [bounds.min.x,bounds.max.x]) for(const y of [bounds.min.y,bounds.max.y]) for(const z of [bounds.min.z,bounds.max.z]) corners.push(this.project(new THREE.Vector3(x,y,z)));
+      result[`${p}bounds`]={left:Math.min(...corners.map(c=>c.x)),right:Math.max(...corners.map(c=>c.x)),top:Math.min(...corners.map(c=>c.y)),bottom:Math.max(...corners.map(c=>c.y))};
     }
     result.pivot=this.project(new THREE.Vector3(0,HEIGHT+.6,0));
     return result;
@@ -127,6 +128,21 @@ export class MetricScene extends WorkshopScene {
     for(const hanger of Object.values(this.hangers||{}))hanger.rotation.z=-this.motion.angle;
     this.scene.updateMatrixWorld(true);this.renderer.render(this.scene,this.camera);this.dirty=false;
     this.callbacks.onFrame?.({positions:this.screenPositions(),direction:this.state?measures(this.state).direction:'balance',held:this.held||!!this.drag,angle:this.motion.angle});
+  }
+  resetCamera() {
+    const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
+    // A stable composition leaves room for the overlay controls and math tray.
+    // Its framing depends only on the viewport, never on panel content/visibility.
+    this.controls.target.set(0,3.5,0);
+    this.camera.position.set(10*fit,3.5+12*fit,38*fit);
+    this.controls.maxDistance=Math.max(65,55*fit);
+    this.controls.update();this.draw();
+  }
+  sideCamera() {
+    const fit=Math.max(1,1.6/(this.host.clientWidth/this.host.clientHeight));
+    this.controls.target.set(0,3.5,0);
+    this.camera.position.set(0,3.6,42*fit);
+    this.controls.update();this.draw();
   }
   screenSign() {
     return this.project(new THREE.Vector3(10,HEIGHT,0)).x>=this.project(new THREE.Vector3(-10,HEIGHT,0)).x?1:-1;
