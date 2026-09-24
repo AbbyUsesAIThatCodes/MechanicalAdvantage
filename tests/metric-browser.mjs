@@ -109,7 +109,7 @@ export async function verifyMetric(page, root) {
       const ma=await page.locator('[data-measure-label="a"]').boundingBox(),mb=await page.locator('[data-measure-label="b"]').boundingBox();
       assert.ok(ma.x+ma.width<=mb.x||mb.x+mb.width<=ma.x||ma.y+ma.height<=mb.y||mb.y+mb.height<=ma.y,'distance captions do not overlap');
     }else{
-      for(const p of ['a','b'])assert.ok(await page.locator(`[data-part="${p}"] .weight-info`).isVisible(),'short screens show distance in the weight callout');
+      for(const p of ['a','b'])assert.ok(await page.locator(`#tag-distance-${p}`).isVisible(),'short screens show distance in the weight callout');
     }
     await page.mouse.move(0,0);await page.keyboard.press('Escape');
     await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
