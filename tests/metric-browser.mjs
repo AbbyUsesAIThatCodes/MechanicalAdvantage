@@ -1,0 +1,56 @@
+import assert from 'node:assert/strict';
+// Runs inside the repository's existing browser CI and software-WebGL configuration.
+export async function verifyMetric(page, root) {
+  await page.setViewportSize({width:1366,height:768});
+  await page.goto(root);
+  await page.waitForFunction(()=>document.querySelector('#app').dataset.ready==='true');
+  await page.getByRole('button',{name:'Reset',exact:true}).click();
+  await page.getByRole('button',{name:'Double distance A',exact:true}).click();
+  assert.equal(await page.locator('#beam-status').innerText(),'Weight A dips');
+  await page.getByRole('button',{name:'Halve mass A',exact:true}).click();
+  assert.equal(await page.locator('#beam-status').innerText(),'Balanced');
+  await page.getByRole('combobox',{name:'Try',exact:true}).selectOption('double');
+  assert.equal(await page.locator('#mass-a').inputValue(),'100');
+  assert.equal(await page.locator('#mass-b').inputValue(),'200');
+  await page.mouse.move(1020,65);await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
+  await page.screenshot({path:'artifacts/metric-workshop.png'});
+  const tag=page.locator('[data-select="a"]');
+  await tag.click();
+  await tag.press('ArrowUp');
+  assert.equal(await page.locator('#mass-a').inputValue(),'125');
+  await tag.press('ArrowDown');
+  await page.getByRole('button',{name:'Hold level',exact:true}).click();
+  assert.equal(await page.locator('#beam-status').innerText(),'Held level');
+  await page.getByRole('button',{name:'Release',exact:true}).click();
+  assert.equal(await page.locator('#beam-status').innerText(),'Balanced');
+  // Direct label drag and vertical mass handle both use pointer capture.
+  const box=await tag.boundingBox();
+  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);
+  await page.mouse.down();await page.mouse.move(box.x+box.width/2+90,box.y+box.height/2,{steps:10});await page.mouse.up();
+  assert.ok(Number(await page.locator('#distance-a').inputValue())<200);
+  const grip=await page.locator('[data-massdrag="a"]').boundingBox();
+  await page.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2);await page.mouse.down();await page.mouse.move(grip.x+grip.width/2,grip.y+grip.height/2-25,{steps:10});await page.mouse.up();
+  assert.ok(Number(await page.locator('#mass-a').inputValue())>100);
+  await page.getByRole('button',{name:'Hide math',exact:true}).click();assert.equal(await page.locator('#math-panel').isVisible(),false);
+  await page.getByRole('button',{name:'Show math',exact:true}).click();
+  await page.getByRole('combobox',{name:'Try',exact:true}).selectOption('triple');
+  await page.getByRole('tab',{name:'Grams → newtons'}).click();
+  assert.match(await page.locator('#force-math').innerText(),/2\.943 N/);
+  await page.mouse.move(1020,65);await page.keyboard.press('Escape');
+  await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
+  await page.screenshot({path:'artifacts/metric-newtons.png'});
+  await page.getByRole('tab',{name:'Balance & advantage'}).click();
+  await page.getByRole('button',{name:'Orbit ↻'}).click();await page.getByRole('button',{name:'Orbit ↻'}).click();
+  await page.getByRole('combobox',{name:'Try',exact:true}).selectOption('equal');
+  await tag.click();await page.getByRole('button',{name:'Move A right',exact:true}).click();
+  assert.equal(await page.locator('#distance-a').inputValue(),'175','screen-right reverses after half orbit');
+  await page.getByRole('button',{name:'Fit view'}).click();
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForFunction(()=>document.documentElement.scrollHeight>1000);
+  await page.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
+  await page.screenshot({path:'artifacts/metric-mobile.png',fullPage:true});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no mobile horizontal overflow');
+  await page.setViewportSize({width:1366,height:768});
+  console.log('PASS: metric 3D init, ratios, drag, mass resize, reverse camera, math toggle, newtons and mobile.');
+}
