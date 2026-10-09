@@ -1,5 +1,7 @@
 # Mechanical Advantage
 
+**[Play MechanicalAdvantage Online](https://abbyusesaithatcodes.github.io/MechanicalAdvantage/)**
+
 A standalone classroom lever game: move gram masses along a millimeter scale and see mechanical advantage change in real time.
 
 This is the independent home of **Millimeter Lab**, originally developed in an unmerged LeverWorkshop PR. [Lever Workshop](https://github.com/AbbyUsesAIThatCodes/LeverWorkshop) remains its own game and repository.
